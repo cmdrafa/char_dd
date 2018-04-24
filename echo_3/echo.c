@@ -24,14 +24,20 @@ MODULE_AUTHOR("Rafael Kraemer");
 dev_t echoDevice;
 struct echo_dev
 {
+	int cnt;
+	char *data;
+	int arrsize;
 	struct cdev cdev;
 };
 
 int echo_open(struct inode *inodep, struct file *filep)
 {
+	int ret;
 	struct echo_dev *dev;
 	dev = container_of(inodep->i_cdev, struct echo_dev, cdev);
 	filep->private_data = dev;
+
+	ret = nonseekable_open(inodep, filep);
 
 	printk(KERN_INFO "Device has been opened\n");
 	return 0;
@@ -45,12 +51,45 @@ int echo_release(struct inode *inodep, struct file *filep)
 
 ssize_t echo_read(struct file *filep, char __user *buff, size_t count, loff_t *offp)
 {
+	unsigned long uncp;
+	struct echo_dev *dev = filep->private_data;
 
+	uncp = copy_to_user(buff, dev->data, count);
+	printk(KERN_INFO "String sent to user %s\n", dev->data);
+
+	if (uncp == 0)
+	{
+		printk(KERN_INFO "Bytes sent to user %d\n", count);
+		return count;
+	}
+	else
+	{
+		return uncp;
+	}
 }
 
 ssize_t echo_write(struct file *filep, const char __user *buff, size_t count, loff_t *offp)
 {
+	unsigned long uncp;
+	struct echo_dev *dev = filep->private_data;
+	dev->data = kmalloc(count, GFP_KERNEL);
+	memset(dev->data, 0, count);
 
+	uncp = copy_from_user(dev->data, buff, count);
+	printk(KERN_INFO "%s\n", dev->data);
+
+	kfree(dev->data);
+
+	if (uncp == 0)
+	{
+		printk(KERN_INFO "Bytes Read %d\n", count);
+		return count;
+	}
+	else
+	{
+		printk(KERN_ALERT "Unable to copy %lu bytes\n", uncp);
+		return uncp;
+	}
 }
 
 struct file_operations device_fops = {
@@ -68,7 +107,7 @@ static int echo_init(void)
 {
 	int ret, Major, Minor, reg;
 
-	// Allocate Major numbers amd regoster the device
+	// Allocate Major numbers
 	ret = alloc_chrdev_region(&echoDevice, 0, 1, "echo");
 	if (ret < 0)
 	{
