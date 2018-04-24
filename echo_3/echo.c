@@ -55,7 +55,7 @@ ssize_t echo_read(struct file *filep, char __user *buff, size_t count, loff_t *o
 	struct echo_dev *dev = filep->private_data;
 
 	uncp = copy_to_user(buff, dev->data, count);
-	printk(KERN_INFO "String sent to user %s\n", dev->data);
+	printk(KERN_INFO "String sent to user: %s\n", dev->data);
 
 	if (uncp == 0)
 	{
@@ -76,7 +76,7 @@ ssize_t echo_write(struct file *filep, const char __user *buff, size_t count, lo
 	memset(dev->data, 0, count);
 
 	uncp = copy_from_user(dev->data, buff, count);
-	printk(KERN_INFO "%s\n", dev->data);
+	printk(KERN_INFO "Kernel Received string: %s\n", dev->data);
 
 	kfree(dev->data);
 
