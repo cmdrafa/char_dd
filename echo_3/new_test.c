@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     }
     char *buf = malloc(buffersize + 2);
     char *dev = argv[1];
-    char *q = "quit";
+    char *q = "quit\n";
 
     int fd = open(dev, O_RDWR);
     if (fd < 0)
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         int len = strlen(buf);
         int rc_w = write(fd, buf, len);
         int rc_r = read(fd, buf, len);
-        if (strcmp(buf, "quit") == 0)
+        if (strcmp(buf, q) == 0)
         {
             printf("Goodbye\n");
             break;
