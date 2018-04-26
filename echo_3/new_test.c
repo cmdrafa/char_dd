@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
     while (fgets(buf, buffersize + 2, stdin) != NULL)
     {
         int len = strlen(buf);
+        //printf("LEN %d\n", len);
         int rc_w = write(fd, buf, len);
         int rc_r = read(fd, buf, len);
         if (strcmp(buf, q) == 0)

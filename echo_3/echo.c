@@ -60,6 +60,7 @@ ssize_t echo_read(struct file *filep, char __user *buff, size_t count, loff_t *o
 	if (uncp == 0)
 	{
 		printk(KERN_INFO "Bytes sent to user %d\n", count);
+		printk(KERN_INFO "Total bytes read so far %d\n", dev->cnt);
 		return count;
 	}
 	else
@@ -72,8 +73,8 @@ ssize_t echo_write(struct file *filep, const char __user *buff, size_t count, lo
 {
 	unsigned long uncp;
 	struct echo_dev *dev = filep->private_data;
-	dev->data = kmalloc(count, GFP_KERNEL);
-	memset(dev->data, 0, count);
+	dev->data = kmalloc(count+1, GFP_KERNEL);
+	memset(dev->data, 0, count+1);
 
 	uncp = copy_from_user(dev->data, buff, count);
 	printk(KERN_INFO "Kernel Received string: %s\n", dev->data);
@@ -82,6 +83,7 @@ ssize_t echo_write(struct file *filep, const char __user *buff, size_t count, lo
 
 	if (uncp == 0)
 	{
+		dev->cnt += count;
 		printk(KERN_INFO "Bytes Read %d\n", count);
 		return count;
 	}
